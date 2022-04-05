@@ -1,8 +1,11 @@
 <!DOCTYPE html>
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:fb="http://ogp.me/ns/fb#">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta property="og:image" content="resources/site/banner.png" />
+        <meta property="og:image:width" content="1200"/>
+        <meta property="og:image:height" content="630"/>
         <title>Arcanyst - Ash's Award Templates</title>
 
         <script src="meta.js"></script>
@@ -67,7 +70,7 @@
                 Recipients.Initialize();
                 Award.Preview = new Award({ order: "battle", rank: 0, variant: "arcane" });
                 _CreateAwardNav();
-                
+
                 Award.onPreviewUpdate.push(PreviewAwardUpdate);
                 Award.draw.html(Award.Preview, document.getElementById("AwardPreviewSVG"));
                 
@@ -542,50 +545,18 @@
                         <div class="AwardNavContainer" style="position:absolute;left:5px;display:grid;vertical-align:middle;height: 100%;">
                             <div id="AwardVariantButtons" style="display: flex;justify-content: center;flex-direction: column;grid-column:3;"></div>
                         </div>
-                        <div class="AwardNavContainer" style="position:absolute;right:5px;display:grid;vertical-align:middle;height: 100%;">
-                            <div id="ImportedAwardButtons" style="display: flex;justify-content: center;flex-direction: column;grid-column:1;"></div>
-                        </div>
                     </div>
                     <div id="InfoContainer" class="hide">
                         <a style="position:absolute;right:15px;top:5px;font-size:2em; cursor: pointer;" onclick="ChangeTab('Main')">✕</a>
                         <section id="InfoSection_About" class="hide">
-                            <h2>About the project</h2>
-                            <p>I've not been in Amtgard for long, but in that time I've seen awards be the main form of progression and recognition within the community. While it seems we may rely a little too heavily on awards to show appreciation, they are still of critical importance.</p>
-                            <p>For 15 years, people have used the same award templates made by Alona Twotrees, which were never intended for long-term use, and thus aren't polished final products, and use questionably sourced assets copyright wise. This is <b>not at all</b> to begrudge Alona, it's clear from the absense of alternatives that she stepped up in a way no one else has since, and has asked people since to stop using them.</p>
-                            <p>Regardless, I took it upon myself to make new templates, built to provide not just a better alternative design-wise, but with a website that makes issuing awards easier, and trivialises things such as adding heraldry.</p>
-                            <p>My hope is that everyone can have an award certificate they can be proud of, and help a little bit to close the gap in quality between templates and custom made scrolls.</p>
-                            <p>This effort has taken me hundreds of hours of work, I tried to keep a rough estimate but gave up about 200 hours in on doing so. I only hope that you use these and that they enrich the game wherever you are. If you wish to donate, the button is there to help justify the absurd amount of intensive design and programming time I put into this, as well as pay for any hosting fees.</p>
-                            <h2>Contact me</h2>
-                            <p>If you have issues, want to help out in some way, or have a feature request, you can reach out to me on <a href="https://www.facebook.com/valory.fox">Facebook</a>, or Discord at <code>them fatale#0001</code></p>
-                            <h3>Info for Monarchs</h3>
-                            <p>Monarchs of Amtgard! I'm willing to develop features or add award templates if wanted. In the future, I'd like to support adding entirely different sets of templates. If you have a line of templates for your kingdom and want them added in some form, please reach out to me!</p>
-                            <h2>Credits</h2>
-                            <ul>
-                                <li>Massive help with flavour text by Kisa (Shelly Alexandra).</li>
-                                <li>Icons (for website) used from <a href="https://icons8.com/">icons8.com</a>.</li>
-                            </ul>
+
                         </section>
                         <section id="InfoSection_Issues" class="hide">
-                            <h2>Known Issues</h2>
-                            <h3>Awards</h3>
-                            <ul>
-                                <li>No generic symbol for Rose & Owl.</li>
-                                <li>Flavour text sits too low on some awards at some ranks.</li>
-                                <li>Multiline on date/award giver not working properly.</li>
-                            </ul>
-                            <h3>Rendering</h3>
-                            <ul>
-                                <li>Owl heraldry filter not showing the first time it's previewed, but does on subsequent refreshes.</li>
-                            </ul>
+
                         </section>
                         <section id="InfoSection_Patch" class="hide">
-                            <h2>Patch Notes</h2>
-                            <h3>Version 1.1</h3>
-                            <ul>
-                                <li>This is the first real version, thus there are no patches uwu.</li>
-                            </ul>
+
                         </section>
-                        
                     </div>
                 </div>
                 <div class="sidebar" style="overflow:auto;">
@@ -748,9 +719,9 @@
                                     <span style="color:#34e834;width:100%;text-align:center;font-size: 1.2em;">RECOMMENDED - Import from Google Sheets</span>
                                     <span>Make a copy of <a target="_blank" href="https://docs.google.com/spreadsheets/d/1_tPc6v8ekbY6w8Dz4WK-PnXaTVO1WQie3nXaTJjcntw">this Google Sheet</a> and follow the instructions.</span>
                                     <input id="RecipientImport_URL" name="RecipientImport_URL" type="text" placeholder="Paste Google Sheets URL here..." style="min-width:0px;flex-basis:80%;flex-grow: 1;" 
-                                        onchange="ImportSheet(event.target.value)"/>
+                                        onchange="Recipients.ImportSheet(event.target.value)"/>
                                     <a style="height:22.5px;margin-left:5px;" 
-                                        onclick="ImportSheet(document.getElementById('RecipientImport_URL').value)"><img src="../resources/icons/refresh.png" width="22.5px" height="22.5px"/></a>
+                                        onclick="Recipients.ImportSheet(document.getElementById('RecipientImport_URL').value)"><img src="../resources/icons/refresh.png" width="22.5px" height="22.5px"/></a>
                                 </div>
                             </div>
                             <div id="CurrentRecipient"></div>

@@ -136,7 +136,7 @@
                         margin-block-start: 0.25em;
                     }
                     .AwardeeName {
-                        font-size: 1.8em;
+                        font-size: 1.7em;
                         /* Em Size Changes */
                         min-width: 6em;
                         min-height:0.8em;
@@ -146,7 +146,7 @@
                     }
 
                     .Award .Body.AwardDetails {
-                        margin-block-start: 0.7em;
+                        margin-block-start: 0.2em;
                         font-weight: 700;
                     }
 
@@ -181,7 +181,6 @@
                         min-width: 60%;
                         margin-left:-10%;
                         margin-right:-10%;
-                        margin-bottom:5%;
                     }
 
                     section.SignAndDate
@@ -240,7 +239,7 @@
                     <div class="Body AwardDetails ZodiacElem">
                         <span name="AwardText_With" style="display:inline;">for the month of </span><span name="AwardText_Month"></span>
                     </div>
-                    <div class="Body Award_Reason Multiline" style="font-size:0.75em;margin-left:1em;margin-right:1em;margin-bottom:0em;flex-grow:0;">
+                    <div class="Body Award_Reason Multiline" style="font-size:0.65em;margin-left:0.5em;margin-right:0.5em;margin-bottom:0em;flex-grow:0;">
                         <div style="padding-top:0.42em;position:absolute;left:0;right:0;top:0;bottom:0;">
                             <img class="Underline Cull" src="resources/elements/writing-line.png" /> 
                             <img class="Underline Cull" src="resources/elements/writing-line.png" /> 
