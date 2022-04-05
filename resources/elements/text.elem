@@ -226,7 +226,7 @@
                     </div>
 
                     <div >
-                        <p class="AwardeeName UnderlinedBlank KeepUnderline" style="line-height:0.4em">
+                        <p class="AwardeeName UnderlinedBlank KeepUnderline">
                             <span name="AwardText_Name" class="FormFill" style="margin-top:0.3em;bottom:0;position:relative;">
                                 <img class="Underline" src="resources/elements/writing-line.png" />
                             </span>
