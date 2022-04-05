@@ -1,0 +1,8 @@
+:root {
+    --primary-color: hsl(41, 93%, 55%);
+    --secondary-color: hsl(0, 7%, 35%);
+}
+
+#AwardText_Order::after { 
+    content: "Order of the Crown"; 
+}

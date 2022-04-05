@@ -1,0 +1,8 @@
+:root {
+    --primary-color: hsl(0, 57%, 61%);
+    --secondary-color: hsl(30, 55%, 80%);
+}
+
+#AwardText_Order::after { 
+    content: "Order of the Battle"; 
+}

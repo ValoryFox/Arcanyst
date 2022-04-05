@@ -1,0 +1,24 @@
+:root {
+    --primary-color: hsl(35, 29%, 55%);
+    --secondary-color: hsl(34, 72%, 78%);
+}
+
+#AwardText_Order::after { 
+    content: "Order of the Griffon"; }
+
+use[href*="Deco"] {
+    display:none !important;
+}
+use[href="#Border-Deco-Special-Griffon"] {
+    display:inline !important;
+}
+
+.AwardBorder.Primary {
+    --display-primary: inherit;
+    --display-secondary: none;
+}                    
+
+.AwardBorder.Secondary {
+    --display-primary: none;
+    --display-secondary: inherit;
+}

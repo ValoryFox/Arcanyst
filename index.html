@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Arcanyst - Ash's Award Templates</title>
+
+        <script src="meta.js"></script>
+        <script src="lib/external/jquery.js"></script>
+        <script src="lib/external/jsork.js"></script>
+
+        <script src="lib/site/ork.js"></script>
+        <script src="lib/site/config.js"></script>
+        <script src="lib/site/heraldry.js"></script>
+        <script src="lib/site/status.js"></script>
+        <script src="lib/site/recipients.js"></script>
+        
+        <script src="lib/io/blob-stream.js"></script>
+        <script src="lib/io/FileSaver.js"></script>
+        <script src="lib/io/pdfkit.js"></script>
+        <script src="lib/io/zip-full.js"></script>
+
+        <script src="lib/framework/attributes.js"></script>
+        <script src="lib/framework/award.js"></script>
+        <script src="lib/framework/shared.js"></script>
+        <script src="lib/framework/render.js"></script>
+        <script src="lib/framework/html_manip.js"></script>
+
+        <script src="lib/jank.js"></script>
+        <script src="awards/ash.js"></script>
+
+        <link rel="stylesheet" href="../styles/page.css">
+        <style id="Style-HideDeadParks">
+            option.InactivePark {
+                display:none;
+            }
+        </style>
+        <style id="Style-HideOrkHeraldryWarning">
+            #Heraldry-Preview-Warning {
+                display:none;
+            }
+        </style>
+        <style>
+            
+            @font-face {
+                font-family: 'BlackChancery';
+                src: url('resources/fonts/BlackChancery.woff') format('woff2'),
+                    url('resources/fonts/BlackChancery.woff') format('woff');
+                font-weight: 100;
+                font-style: normal;
+                font-display: swap;
+            }
+        </style>
+        <style id="STYLE_Global" ></style>
+
+
+        <script>
+            
+
+            function init()
+            {
+                OpenSetupModal();
+
+                console.info(navigator.userAgent);
+                STYLE_Global = document.getElementById("STYLE_Global").sheet;
+                Config.Initialize();
+                Recipients.Initialize();
+                Award.Preview = new Award({ order: "battle", rank: 0, variant: "arcane" });
+                _CreateAwardNav();
+                
+                Award.onPreviewUpdate.push(PreviewAwardUpdate);
+                Award.draw.html(Award.Preview, document.getElementById("AwardPreviewSVG"));
+                
+                sidebarTab = document.getElementById('SidebarTab_Recipient');
+                sidebarTabButton = document.getElementById('SidebarTab_Recipient_Button');
+
+                PrintContainer = document.getElementById("PrintContainer");
+
+                Version.Load();
+
+            }
+
+            function OpenSetupModal()
+            {
+                Status.Modal = true;
+                Status.Elem_Status.appendChild(document.getElementById('SidebarTab_Setup'));
+                document.getElementById('SidebarTab_Setup').classList.toggle('hide', false);
+            }
+            function CloseSetupModal()
+            {
+                Status.Modal = false;
+                document.getElementById('UI_SidebarBox').appendChild(document.getElementById('SidebarTab_Setup'));
+                document.getElementById('SidebarTab_Setup').classList.toggle('hide', true);
+            }
+
+            var PrintContainer;
+
+            var sidebarTab;
+            var sidebarTabButton;
+
+            function PreviewAwardUpdate(award, changes)
+            {
+                if (!Array.isArray(changes))
+                    changes = [changes];
+
+                for (const change of changes)
+                {
+                    const { property, from, to } = change;
+     
+                    // Show relevant navigation buttons as active/inactive.
+                    UI_NavButtons[property]?.[from]?.classList.toggle('active', false);
+                    UI_NavButtons[property]?.[to]?.classList.toggle('active', true);
+                    
+                    if (property == 'order')
+                    {
+                        UI_NavButtons.Containers.variant.removeAllChildNodes();
+                        UI_NavButtons.variant = {};
+                        if (Award.Preview.variants)
+                        {
+                            Award.Orders[award.order].variants.forEach(variant => AddNavButton(variant.capitalizeFirstLetter(), 'variant', variant));
+                            award.variant = Award.Orders[award.order].variants[0];
+                        }
+                        for (let rank = 0; rank <= 10; rank++)
+                        {
+                             UI_NavButtons.Containers.rank.children[rank].classList.toggle('hide', 
+                                Award.Orders[award.order].ranks.to < rank
+                                || Award.Orders[award.order].ranks.from > rank);
+                        }    
+                    }
+                }
+
+
+                Award.draw.html(Award.Preview, document.getElementById("AwardPreviewSVG"));
+            }
+
+            
+            let UI_NavButtons = { Containers: { }, rank: { }, order: { }, variant: { } }
+            function _CreateAwardNav()
+            {
+                UI_NavButtons.Containers.order = document.getElementById("AwardTypeButtons");
+                UI_NavButtons.Containers.rank = document.getElementById("AwardRankButtons");
+                UI_NavButtons.Containers.variant = document.getElementById("AwardVariantButtons");
+                var PreviewContainer = document.getElementById("PreviewContainer");
+
+                let rankLabels = ["—", '1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th', '10th'];
+                for (let rank = 0; rank <= 10; rank++)
+                    AddNavButton(rankLabels[rank], 'rank', rank);
+                
+                Award.List.forEach(order => {
+                    let text = `<div style="display:grid;grid-template-columns:26px auto;"><img src="resources/site/icons/${order}.png" style="margin:-5px 5px -5px -1px;align-self:center;" height="20px" width="20px"/><span style="text-align:left;">${order.capitalizeFirstLetter()}</span></div>`
+                    AddNavButton(text, 'order', order)
+                });
+                
+                if (Award.Preview.variants)
+                    Award.Orders[Award.Preview.order].variants?.forEach(variant => AddNavButton(variant.capitalizeFirstLetter(), 'variant', variant));
+            }
+            function AddNavButton(text, prop, value)
+            {
+                let elem = document.createElement("button");
+                elem.classList.add('styledButton');
+                elem.setAttribute("style","margin-left:0px;margin-right:0px;");
+                elem.addEventListener("click", () => Award.Preview[prop] = value);
+                elem.innerHTML = text;
+                elem._prop = prop;
+                elem._value = value;
+                UI_NavButtons[prop][value] = elem;
+                if (Award.Preview[prop] == value)
+                    elem.classList.add('active');
+
+                return UI_NavButtons.Containers[prop].appendChild(elem);
+            }
+            
+
+
+            function Save_PreviewAward()
+            {
+                Save_SingleAward(Award.Preview);
+            }
+
+            function Save_SingleAward(_award)
+            {
+                Status.Modal = true;
+                let saveStatus;
+                const { doc, stream, promise } = Award.NewPDF();                
+                promise.then(async () => { return await Award.draw.pdf(_award, doc) })
+                .then(async context => await context.End(doc))
+                .then(() => {
+                    saveStatus = new StatusText("Saving PDF File");
+                    doc.end();
+                    stream.on('finish', function() {
+                        const blob = stream.toBlob('application/pdf');
+                        saveAs(blob, _award.fileName);
+                        Status.Modal = false;
+                        saveStatus?.End();
+                    });  
+                }).then(() => {  }, () => { saveStatus?.End(); Status.Modal = false});
+            }
+
+            async function Save_AllAwards()
+            {
+
+                var blobs = {};
+
+                Status.Modal = true;
+                let progress_all = new Progress("Creating Orders", Award.List.length);
+                for (let awdType of Award.List)
+                {
+                    let variants = Award.Orders[awdType].variants ?? [null];
+                    let progress_award = new Progress(`Creating ${Award.Orders[awdType].title} Awards`, (Award.Orders[awdType].ranks.to - Award.Orders[awdType].ranks.to + 1) * variants.length);
+                    let queue = [];
+                    for (let rank = Award.Orders[awdType].ranks.from; rank <= Award.Orders[awdType].ranks.to; rank++)
+                    {
+                        for (let variant of variants)
+                        {
+                            let path = `${awdType.capitalizeFirstLetter()}/${variants.length > 1 ? variant + '/' : ''}${Award.Orders[awdType].title} - ${rank == 0 ? 'Generic' : "Rank " + rank}.pdf`
+                            let params = { order: awdType, rank: rank };
+                            if (variant) params.variant = variant;
+
+                            queue.push(new Promise(async (respond) => { 
+
+                                let { doc, stream, promise } = Award.NewPDF();
+                                let awd = new Award(params)
+                                let cxt = await Award.draw.pdf(awd, doc, null, true);
+                                await cxt.End(doc);
+                                progress_award.current += 1;
+                                doc.end();
+                                stream.on('finish', function() {
+                                    blobs[path] = stream.toBlob('application/pdf');
+                                    respond();
+                                });  
+                            }));
+                            if (navigator.userAgent.includes("Firefox"))
+                                await queue[queue.length - 1];
+                        }
+                    }
+                    await Promise.all(queue);
+                    AwardContext.purgeGroup(awdType);
+                    progress_award.End();
+                    progress_all.current += 1;
+                    
+                }
+                progress_all.End();
+
+                const blobWriter = new zip.BlobWriter("application/zip");
+                const writer = new zip.ZipWriter(blobWriter);
+                let zip_progress_award = new Progress(`Compressing Awards`, Object.keys(blobs).length);
+                for (const [path, blob] of Object.entries(blobs))
+                {
+                    await writer.add(path, new zip.BlobReader(blob));
+                    zip_progress_award.current++;
+                }
+                zip_progress_award.End();
+                let saveStatus = new StatusText("Saving ZIP File");
+                await writer.close();
+                const blob = await blobWriter.getData();
+                saveAs(blob, "Ash Awards (All).zip");
+                saveStatus.End();
+                Status.Modal = false;
+            }
+
+            async function ChangeTab(id)
+            {
+                for (let _l of document.querySelector('nav').querySelectorAll('a'))
+                    _l.classList.toggle('active', _l.id == `NavItem_${id}`);
+                document.getElementById('InfoContainer').classList.toggle('hide', id == 'Main');
+                for (let _section of document.getElementById('InfoContainer').querySelectorAll('section'))
+                    _section.classList.toggle('hide', _section.id != `InfoSection_${id}`);
+            }
+
+            async function Print_AwardList()
+            {
+                PrintContainer.removeAllChildNodes();
+                Status.Modal = true;
+                let progress_draw = new Progress("Creating Awards", Recipients.List.length);
+                for (let i = 0; i < Recipients.List.length; i++)
+                {
+                    await _AddPrintAward(Recipients.List[i]);
+                    progress_draw.current += 1;
+                }
+                progress_draw.End();
+                Status.Modal = false;
+                window.print();
+            }
+
+            async function Print_SingleAward(award)
+            {
+                PrintContainer.removeAllChildNodes();
+                await _AddPrintAward(award);
+                window.print();
+                PrintContainer.removeAllChildNodes();
+            }
+
+            async function Print_PreviewAward()
+            {
+                Print_SingleAward(Award.Preview);
+            }
+
+            async function _AddPrintAward(award)
+            {
+                let awd = document.createElementNS("http://www.w3.org/2000/svg", 'svg');
+                awd.setAttribute('viewBox', "0 0 2550 3300");
+                awd.classList.add("print");
+                await Award.draw.html(award, awd);
+                PrintContainer.appendChild(awd);
+            }
+
+            function Save_ImportedAwards()
+            {
+                Status.Modal = true;
+                let { doc, stream, promise } = Award.NewPDF();
+                let progress_draw = new Progress("Creating Awards", Config.AwardList.length)
+                for (let i = 0; i < Config.AwardList.length; i++)
+                {
+                    promise = promise.then(async () => {
+                        let cxt = await Award.draw.pdf(Config.AwardList[i], doc);
+                        await cxt.End(doc);
+                        progress_draw.current += 1;
+                        if (i != Config.AwardList.length - 1)
+                            doc.addPage();
+                    });
+                }
+                promise.then(() => {
+                    progress_draw.label = "Finalizing PDF";
+                    doc.end();
+                    stream.on('finish', function() {
+                        const blob = stream.toBlob('application/pdf');
+                        saveAs(blob, "Compiled Awards.pdf");
+                        progress_draw.End();
+                    }); 
+                }).then(() => {Status.Modal = false}, () => {Status.Modal = false});
+            }            
+
+        </script>
+    </head>
+
+    <body onload="init()" >
+        <div id="SyntheticContainer" style="visibility:hidden;position:fixed;top:0;left:0;width:2550px;height:3300px;overflow: hidden;">
+            <style>
+                #SyntheticContainer > * {
+                    position: absolute;
+                    top:0;left:0;
+                }
+                #SyntheticContainer:last-child {
+                    page-break-after: avoid;
+                }
+            </style>
+        </div>
+        <div id="PrintContainer">
+
+        </div>
+        <svg style="visibility:hidden;position:fixed;top:0;left:0;width:0px;height:0px;">
+            <defs>
+                <filter id="arcanyst" width="2048" height="2048" x="-512" y="-512">
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="1"></feGaussianBlur>
+                    <feColorMatrix result="step_BlurAdj_1"
+                        type="matrix"
+                        values="0 0 0 0 0.6
+                                0 0 0 0 0.2
+                                0 0 0 0 1
+                                0 0 0 0.7 0" />
+                    <feTurbulence type="turbulence" baseFrequency="0.03"
+                        numOctaves="3"/>
+                    <feOffset id="turbulence_1" result="turbulence_1" />
+                    <feDisplacementMap in2="turbulence_1" in="step_BlurAdj_1"
+                        scale="15" xChannelSelector="R" yChannelSelector="G"/>
+                    <feOffset dx="-4" dy="-4"/>
+                    <feComponentTransfer result="step_Glow_1">
+                        <feFuncA id="glow_opacity_1" type="linear" slope="1" intercept="0"></feFuncA>
+                    </feComponentTransfer>
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="2"></feGaussianBlur>
+                    <feColorMatrix result="step_BlurAdj_2"
+                        type="matrix"
+                        values='0 0 0 0 1
+                                0 0 0 0 0
+                                0 0 0 0 0
+                                0 0 0 1 0' />
+                    <feTurbulence type="turbulence" baseFrequency="0.01"
+                        numOctaves="1" seed="5"/>
+                    <feOffset id="turbulence_2" result="turbulence_2" />
+                    <feDisplacementMap in2="turbulence_2" in="step_BlurAdj_2"
+                        scale="15" xChannelSelector="R" yChannelSelector="G"/>
+                    <feOffset dx="-4" dy="-4"/>
+                    <feComponentTransfer result="step_Glow_2">
+                        <feFuncA id="glow_opacity_2" type="linear" slope="1" intercept="-0.1"></feFuncA>
+                    </feComponentTransfer>
+                    <feBlend in2="step_Glow_1" mode="overlay" result="compositeGlow"/>
+                    <feComposite in="SourceGraphic" in2="compositeGlow" operator="over"/>
+                </filter>
+                <animate href="#turbulence_1" attributeName="dx" values="200;200;198;196;192;188;183;177;171;163;156;147;138;129;120;110;100;90;80;71;62;53;44;37;29;23;17;12;8;4;2;0;0;0;2;4;8;12;17;23;29;37;44;53;62;71;80;90;100;110;120;129;138;147;156;163;171;177;183;188;192;196;198;200" 
+                repeatCount="indefinite" dur="24s"/>
+                <animate href="#turbulence_1" attributeName="dy" values="100;110;120;129;138;147;156;163;171;177;183;188;192;196;198;200;200;200;198;196;192;188;183;177;171;163;156;147;138;129;120;110;100;90;80;71;62;53;44;37;29;23;17;12;8;4;2;0;0;0;2;4;8;12;17;23;29;37;44;53;62;71;80;90;"
+                 repeatCount="indefinite" dur="24s"/>
+                <animate href="#turbulence_2" attributeName="dx" values="200;200;198;196;192;188;183;177;171;163;156;147;138;129;120;110;100;90;80;71;62;53;44;37;29;23;17;12;8;4;2;0;0;0;2;4;8;12;17;23;29;37;44;53;62;71;80;90;100;110;120;129;138;147;156;163;171;177;183;188;192;196;198;200" 
+                repeatCount="indefinite" dur="7s"/>
+                <animate href="#turbulence_2" attributeName="dy" values="100;110;120;129;138;147;156;163;171;177;183;188;192;196;198;200;200;200;198;196;192;188;183;177;171;163;156;147;138;129;120;110;100;90;80;71;62;53;44;37;29;23;17;12;8;4;2;0;0;0;2;4;8;12;17;23;29;37;44;53;62;71;80;90;"
+                 repeatCount="indefinite" dur="7s"/>
+                 
+                <filter id="nc_arcanyst" width="2048" height="2048" x="-512" y="-512">
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="1"></feGaussianBlur>
+                    <feColorMatrix result="step_BlurAdj_1"
+                        type="matrix"
+                        values="0 0 0 0 0.6
+                                0 0 0 0 0.2
+                                0 0 0 0 1
+                                0 0 0 0.7 0" />
+                    <feTurbulence type="turbulence" baseFrequency="0.03"
+                        numOctaves="3"/>
+                    <feOffset result="turbulence_1" />
+                    <feDisplacementMap in2="turbulence_1" in="step_BlurAdj_1"
+                        scale="15" xChannelSelector="R" yChannelSelector="G"/>
+                    <feOffset dx="-4" dy="-4"/>
+                    <feComponentTransfer result="step_Glow_1">
+                        <feFuncA id="glow_opacity_1" type="linear" slope="1" intercept="0"></feFuncA>
+                    </feComponentTransfer>
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="2"></feGaussianBlur>
+                    <feColorMatrix result="step_BlurAdj_2"
+                        type="matrix"
+                        values='0 0 0 0 1
+                                0 0 0 0 0
+                                0 0 0 0 0
+                                0 0 0 1 0' />
+                    <feTurbulence type="turbulence" baseFrequency="0.01"
+                        numOctaves="1" seed="5"/>
+                    <feOffset result="turbulence_2" />
+                    <feDisplacementMap in2="turbulence_2" in="step_BlurAdj_2"
+                        scale="15" xChannelSelector="R" yChannelSelector="G"/>
+                    <feOffset dx="-4" dy="-4"/>
+                    <feComponentTransfer result="step_Glow_2">
+                        <feFuncA id="glow_opacity_2" type="linear" slope="1" intercept="-0.1"></feFuncA>
+                    </feComponentTransfer>
+                    <feBlend in2="step_Glow_1" mode="overlay" result="compositeGlow"/>
+                </filter>
+
+                 <filter id="na_arcanyst" width="2048" height="2048" x="-512" y="-512">
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="1"></feGaussianBlur>
+                    <feColorMatrix result="step_BlurAdj_1"
+                        type="matrix"
+                        values="0 0 0 0 0.6
+                                0 0 0 0 0.2
+                                0 0 0 0 1
+                                0 0 0 0.7 0" />
+                    <feTurbulence type="turbulence" baseFrequency="0.03"
+                        numOctaves="3"/>
+                    <feOffset id="nc_turbulence_1" result="turbulence_1" />
+                    <feDisplacementMap in2="turbulence_1" in="step_BlurAdj_1"
+                        scale="15" xChannelSelector="R" yChannelSelector="G"/>
+                    <feOffset dx="-4" dy="-4"/>
+                    <feComponentTransfer result="step_Glow_1">
+                        <feFuncA id="glow_opacity_1" type="linear" slope="1" intercept="0"></feFuncA>
+                    </feComponentTransfer>
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="2"></feGaussianBlur>
+                    <feColorMatrix result="step_BlurAdj_2"
+                        type="matrix"
+                        values='0 0 0 0 1
+                                0 0 0 0 0
+                                0 0 0 0 0
+                                0 0 0 1 0' />
+                    <feTurbulence type="turbulence" baseFrequency="0.01"
+                        numOctaves="1" seed="5"/>
+                    <feOffset id="nc_turbulence_2" result="turbulence_2" />
+                    <feDisplacementMap in2="turbulence_2" in="step_BlurAdj_2"
+                        scale="15" xChannelSelector="R" yChannelSelector="G"/>
+                    <feOffset dx="-4" dy="-4"/>
+                    <feComponentTransfer result="step_Glow_2">
+                        <feFuncA id="glow_opacity_2" type="linear" slope="1" intercept="-0.1"></feFuncA>
+                    </feComponentTransfer>
+                    <feBlend in2="step_Glow_1" mode="overlay" result="compositeGlow"/>
+                    <feComposite in="SourceGraphic" in2="compositeGlow" operator="over"/>
+                </filter>
+
+                <filter id="blurNoAlpha">
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="3" edgeMode="duplicate"></feGaussianBlur>
+                    <feColorMatrix 
+                        type="matrix"
+                        values="1 0 0 0 0
+                                0 1 0 0 0
+                                0 0 1 0 0
+                                0 0 0 0 1" />
+                </filter>
+                <filter id="OWL_edge-detect" >
+                    <feFlood x="-10%" y="-10%" width="120%" height="120%" flood-color="white" flood-opacity="1" result="flood" ></feFlood>
+                    <feGaussianBlur stdDeviation="1" in="SourceGraphic" /> 
+                    <feComposite x="-10%" y="-10%" width="120%" height="120%" in2="flood" mode="over"></feComposite>
+                    <feConvolveMatrix x="-10%" y="-10%" width="120%" height="120%"  order="3 3" preserveAlpha="true" edgeMode="none" kernelMatrix="0 -2 0 -2 8 -2 0 -2 0"/>
+                    <feColorMatrix 
+                        type="matrix"
+                        values="0 0 0 0 1
+                                0 0 0 0 1
+                                0 0 0 0 1
+                                1 1 1 0 0" />
+        
+                </filter>
+                <filter id="OWL_blueprint-outline">
+                    <feMorphology operator="erode" radius="2"/>
+                    <feComposite in2="SourceGraphic" operator="xor" result="outline"></feComposite>
+                    <feColorMatrix in="SourceGraphic"
+                                    type="matrix"
+                                    values="1 0 0 0 0
+                                            0 1 0 0 0
+                                            0 0 1 0 0
+                                            0 0 0 0.3 0" />
+                    <feBlend in2="outline" />
+                </filter>
+            </defs>
+        </svg>
+        <div class="container">
+            <div style="min-height:4em;">
+                <nav >
+                    <div class="navSection" style="display:flex;align-items: center;">
+                        <a href="../" style="text-decoration:none;">Home</a>
+                        <a id="NavItem_Main" style="text-decoration:none;" class="active" onclick="ChangeTab('Main')">Arcanyst</a>
+                        <!--<a href="./" style="text-decoration:none;font-size: 0.6em;">Patch<br/>Notes</a>-->
+                        <a id="NavItem_About" style="text-decoration:none;font-size: 0.6em;" onclick="ChangeTab('About')">About the<br/>Project</a>
+                        <a id="NavItem_Issues" style="text-decoration:none;font-size: 0.6em;" onclick="ChangeTab('Issues')">Known<br/>Issues</a>
+                        <a id="NavItem_Patch" style="text-decoration:none;font-size: 0.6em;" onclick="ChangeTab('Patch')">Patch<br/>Notes</a>
+                    </div>
+                    
+                    <form action="https://www.paypal.com/donate" method="post" target="_blank">
+                        <input type="hidden" name="business" value="8ND3AHBJPYCXL" />
+                        <input type="hidden" name="no_recurring" value="0" />
+                        <input type="hidden" name="currency_code" value="USD" />
+                        <button class="styledButton paypalButton" >
+                            <img src="../resources/paypal.svg" style="filter:drop-shadow(0px 0px 5px black);height:20px;margin:-4px 5px -4px 0px;"><b style="filter:drop-shadow(0px 0px 5px black);">Donate</b></button>
+                    </form>
+                </nav>
+                <div class="arcanyst-header" style="position: relative;">
+                    <span class="arcanyst" id="Version_Number" style="position:absolute;right:20px;font-size:1.6em;top:20px;"></span>
+                    <p style="text-align: center; margin-block-start: 0;margin-block-end: 0;">
+                        <span class="arcanyst">Arcanyst</span>
+                    </p>
+                </div>
+            </div>
+            <div>
+                <div id="PreviewContainer" class="preview ShowInfo" style="position:relative;text-align: center;display:flex;justify-content:center;">
+                    <div class="AwardNavContainer" style="display:grid;vertical-align:middle;height: 100%;flex-shrink: 0;">
+                        <div id="AwardTypeButtons" style="display: flex;justify-content: center;flex-direction: column;"></div>
+                        <div id="AwardRankButtons" style="display: flex;justify-content: center;flex-direction: column;grid-column:2;"></div>
+                    </div>
+                    <div style="position:relative;display:flex;flex-grow:1;margin:3px">
+                        <svg id="AwardPreviewSVG" viewBox="0 0 2550 3300" style="aspect-ratio:8.5/11; width:100%; height:100%; position:relative;">
+                        </svg>
+                        <div class="AwardNavContainer" style="position:absolute;left:5px;display:grid;vertical-align:middle;height: 100%;">
+                            <div id="AwardVariantButtons" style="display: flex;justify-content: center;flex-direction: column;grid-column:3;"></div>
+                        </div>
+                        <div class="AwardNavContainer" style="position:absolute;right:5px;display:grid;vertical-align:middle;height: 100%;">
+                            <div id="ImportedAwardButtons" style="display: flex;justify-content: center;flex-direction: column;grid-column:1;"></div>
+                        </div>
+                    </div>
+                    <div id="InfoContainer" class="hide">
+                        <a style="position:absolute;right:15px;top:5px;font-size:2em; cursor: pointer;" onclick="ChangeTab('Main')">✕</a>
+                        <section id="InfoSection_About" class="hide">
+                            <h2>About the project</h2>
+                            <p>I've not been in Amtgard for long, but in that time I've seen awards be the main form of progression and recognition within the community. While it seems we may rely a little too heavily on awards to show appreciation, they are still of critical importance.</p>
+                            <p>For 15 years, people have used the same award templates made by Alona Twotrees, which were never intended for long-term use, and thus aren't polished final products, and use questionably sourced assets copyright wise. This is <b>not at all</b> to begrudge Alona, it's clear from the absense of alternatives that she stepped up in a way no one else has since, and has asked people since to stop using them.</p>
+                            <p>Regardless, I took it upon myself to make new templates, built to provide not just a better alternative design-wise, but with a website that makes issuing awards easier, and trivialises things such as adding heraldry.</p>
+                            <p>My hope is that everyone can have an award certificate they can be proud of, and help a little bit to close the gap in quality between templates and custom made scrolls.</p>
+                            <p>This effort has taken me hundreds of hours of work, I tried to keep a rough estimate but gave up about 200 hours in on doing so. I only hope that you use these and that they enrich the game wherever you are. If you wish to donate, the button is there to help justify the absurd amount of intensive design and programming time I put into this, as well as pay for any hosting fees.</p>
+                            <h2>Contact me</h2>
+                            <p>If you have issues, want to help out in some way, or have a feature request, you can reach out to me on <a href="https://www.facebook.com/valory.fox">Facebook</a>, or Discord at <code>them fatale#0001</code></p>
+                            <h3>Info for Monarchs</h3>
+                            <p>Monarchs of Amtgard! I'm willing to develop features or add award templates if wanted. In the future, I'd like to support adding entirely different sets of templates. If you have a line of templates for your kingdom and want them added in some form, please reach out to me!</p>
+                            <h2>Credits</h2>
+                            <ul>
+                                <li>Massive help with flavour text by Kisa (Shelly Alexandra).</li>
+                                <li>Icons (for website) used from <a href="https://icons8.com/">icons8.com</a>.</li>
+                            </ul>
+                        </section>
+                        <section id="InfoSection_Issues" class="hide">
+                            <h2>Known Issues</h2>
+                            <h3>Awards</h3>
+                            <ul>
+                                <li>No generic symbol for Rose & Owl.</li>
+                                <li>Flavour text sits too low on some awards at some ranks.</li>
+                                <li>Multiline on date/award giver not working properly.</li>
+                            </ul>
+                            <h3>Rendering</h3>
+                            <ul>
+                                <li>Owl heraldry filter not showing the first time it's previewed, but does on subsequent refreshes.</li>
+                            </ul>
+                        </section>
+                        <section id="InfoSection_Patch" class="hide">
+                            <h2>Patch Notes</h2>
+                            <h3>Version 1.1</h3>
+                            <ul>
+                                <li>This is the first real version, thus there are no patches uwu.</li>
+                            </ul>
+                        </section>
+                        
+                    </div>
+                </div>
+                <div class="sidebar" style="overflow:auto;">
+                    <p style="text-align: center; margin-block-start: 0;margin-block-end: 0;">
+                        <span class="arcanyst-soft" id="Version_Subtitle"></span>
+                    </p>
+                    <div class="sidebarTabs">
+                        <script>
+                            function changeTab(id)
+                            {
+                                id = `SidebarTab_${id}`;
+                                if (id == '') id = elem.parentNode.id;
+                                sidebarTab?.classList.toggle('hide',true);sidebarTabButton?.classList.toggle('active',false);
+                                sidebarTab = document.getElementById(id); sidebarTabButton = document.getElementById(id + '_Button');
+                                sidebarTab?.classList.toggle('hide',false);sidebarTabButton?.classList.toggle('active',true);
+                            }
+                           
+                        </script>
+                        <button class="active" id="SidebarTab_Recipient_Button" onclick="changeTab('Recipient')"><span>Recipient(s)</span></button>
+                        <button id="SidebarTab_Setup_Button" onclick="changeTab('Setup')" ><span>Setup</span></button>
+                        <!--<button id="SidebarTab_Export_Button" onclick="changeTab('Export')" ><span>Export</span></button>-->
+                    </div>
+                    <div id="UI_SidebarBox" class="sidebarBox">
+                        <div id="SidebarTab_Setup" class="hide">
+                            <div style="display:flex;">
+                                <select style="width:40%;flex-grow:1;padding: 10px;" id="Setting-Kingdom" placeholder="Kingdom" disabled="true"
+                                    selectedIndex="0" onchange="Config.UIUpdateEvent(event)">
+                                    <option value="Custom">Kingdom</option>
+                                </select>
+                                <select style="width:30%;flex-grow:1;padding: 10px;" id="Setting-Park" disabled="true" 
+                                    onchange="Config.UIUpdateEvent(event)">
+                                </select>
+                            </div>
+                            <div class="settings-section" style="display:flex;">
+                                <img class="image-frame" id="HeraldryPreview" width="200px" style="object-fit:contain;max-height: 256px;min-width:200px;max-width:200px;flex-grow: 0;"></img>
+                                <span id="Heraldry-Preview-Warning"
+                                        style="position: absolute;left:0px;right:0px;top:0px;text-align: center;font-size: 105%;color:#ff4444;background:#000000dd;padding:5px;"><i>Taken
+                                            from Ork, use a better quality version if you have one!</i></span>
+                        
+                        
+                                <div class="issuer-info" style="flex-grow:1;flex-shrink:1;flex-basis:0%;display: flex;flex-direction: column;">
+                                    <!-- Park Title -->
+                                    <div style="text-align: right;margin-bottom:10px;">
+                                        
+                                        <label for="Setting-ShowDeadParks"><small>Show Dead Parks</small></label>
+                                        <input id="Setting-ShowDeadParks"  type="checkbox" unchecked
+                                            oninput='Config.UIUpdateEvent(event)' />
+                                    </div>
+                                    
+                                    <div style="display:flex;">
+                                        <div style="width:30px">
+                                            <label for="Setting-UseThe"><small>the</small></label>
+                                            <input id="Setting-UseThe" type="checkbox" checked
+                                                oninput='Config.UIUpdateEvent(event)' />
+                                        </div>
+                                        <input id="Setting-IssuerTitle" style="flex-grow: 1; width: 50%;" type="text" placeholder="Park/Kingdom Title"
+                                            oninput='Config.UIUpdateEvent(event)'  />
+                                    </div>
+                                    <div style="display:flex;">
+                                        <div style="width:30px">
+                                            <label for="Setting-UseOf"><small>of</small></label>
+                                            <input id="Setting-UseOf" type="checkbox" checked
+                                                oninput='Config.UIUpdateEvent(event)' />
+                                        </div>
+                                        <input id="Setting-IssuerName" style="flex-grow: 1; width: 50%;" type="text" placeholder="Park/Kingdom Name"
+                                            oninput='Config.UIUpdateEvent(event)'  />
+                                    </div>
+                                    <div style="margin-top:1em;display: flex;align-items: center;flex-wrap: wrap;">
+                                        <label for="Setting-GivenBy" style="width:90px; text-align:right;margin-right: 5px">Given By</label>
+                                        <input id="Setting-GivenBy" type="text" placeholder="Leave blank to hand-sign" style="width: 50%;flex-grow:1;"
+                                            onfocusout='Config.UIUpdateEvent(event)'  />
+                                        <label for="Setting-Date" style="width:90px; text-align:right;margin-right: 5px;">Award Date</label>
+                                        <input id="Setting-Date" type="text" placeholder="13th May 2022" style="width: 50%;flex-grow:1;"
+                                            onfocusout='Config.UIUpdateEvent(event)'  />
+                                    </div>
+                                    <div style="margin-top:1.5em;align-self: flex-start;justify-self: flex-end;">
+                                        <label class="heraldry-upload styledButton" style="grid-row:2;grid-column:1;">
+                                            <input type="file" onchange="SelectHeraldry();" id="HeraldryImport" />
+                                            <small>Choose Heraldry File</small>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="UI_CloseSetupModal" onclick="CloseSetupModal()" style="text-align: center;margin-top:1em;border-radius: 15px;padding:2px 8px 4px 8px;background-color: #000a; border: solid 1px #000e;">
+                                <a style="text-decoration:none;font-size: 2em;font-family: 'Megrim';"  >begin</a>
+                            </div>
+                            
+                            
+                        </div>
+                        
+                        <!--<div id="SidebarTab_Export" class="hide">
+                            <div class="export-buttons">
+                                <button class="styledButton" onclick="Print_PreviewAward()">Print (Current)</button>
+                                <button class="styledButton" onclick="Print_AwardList()">Print (Awards List)</button>
+                            </div>
+                            <div class="export-buttons">
+                                <button class="styledButton" onclick="Save_PreviewAward()">PDF (Current)</button>
+                                <button class="styledButton" onclick="Save_AllAwards()">PDF (All Blanks, .zip)</button>
+                            </div>
+                        </div>-->
+                        <div id="SidebarTab_Recipient" >
+                            <div class="hide" id="templates_recipient">
+                                <div class="RecipientItem" >
+                                    <div class="RecipientHeader" style="padding-top:0.5em;">
+                                        <h3 style="z-index: 1;margin-block-end:0em;"></h3>
+                                    </div>
+                                    
+                                    <div class="border" style="box-shadow: inset 0 0 30px #000000;"></div>
+                                    <div class="border editModal" style="background-color: #2f223333;z-index: 2">
+                                    </div>
+                                    <div class="border border1 glows"></div>
+                                    <div class="border border2 glows" style="border-bottom:solid #fffa 1px;"></div>
+                                    <div class="stuff" >
+                                        <div style="z-index: 1;flex-grow: 0;max-width: 27px;">
+                                        </div>
+                                        <div class="fields">
+                                            <input name="RecipientInput_Player" type="text" placeholder="Player Name" style="min-width:0px;flex-basis:20%;flex-grow: 1;" />
+                                            <select name="RecipientInput_Rank" style="flex-grow:0;width:5em;">
+                                                <option value="0" >Rank</option>
+                                                <option value="1" >1st</option>
+                                                <option value="2" >2nd</option>
+                                                <option value="3" >3rd</option>
+                                                <option value="4" >4th</option>
+                                                <option value="5" >5th</option>
+                                                <option value="6" >6th</option>
+                                                <option value="7" >7th</option>
+                                                <option value="8" >8th</option>
+                                                <option value="9" >9th</option>
+                                                <option value="10">10th</option>
+                                            </select>
+                                            <select name="RecipientInput_Order" style="min-width:0px;flex-basis:15%;flex-grow: 1">
+                                            </select>
+                                            <select name="RecipientInput_Variant" style="min-width:0px;flex-basis:8%;flex-grow: 1">
+                                            </select>
+                                            <select name="RecipientInput_Month" style="min-width:0px;flex-basis:8%;flex-grow: 1">
+                                                <option value="january">January</option>
+                                                <option value="febuary">Febuary</option>
+                                                <option value="march">March</option>
+                                                <option value="april">April</option>
+                                                <option value="may">May</option>
+                                                <option value="june">June</option>
+                                                <option value="july">July</option>
+                                                <option value="august">August</option>
+                                                <option value="september">September</option>
+                                                <option value="october">October</option>
+                                                <option value="november">November</option>
+                                                <option value="december">December</option>
+                                            </select>
+                                            <input name="RecipientInput_Reason" type="text" placeholder="Reason for Award" style="min-width:0px;flex-basis:70%;flex-grow: 1" />
+                                            <a name="RecipientButton_Delete" width="20px" height="20px" style="margin:3px;z-index: 3;"><img src="../resources/icons/delete.png" width="20px" height="20px"/></a>
+                                            <a name="RecipientButton_Preview" width="20px" height="20px" style="margin:3px;z-index: 3;"><img src="../resources/icons/preview.png" width="20px" height="20px"/></a>
+                                            <a name="RecipientButton_Print" width="20px" height="20px" style="margin:3px;z-index: 3;"><img src="../resources/icons/print.png" width="20px" height="20px"/></a>
+                                        </div>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                            <div style="padding-bottom: 0.5em;margin-bottom: 1.25em;border-bottom: 1px solid rgb(255,255,255,0.8)">
+                                <div style="display:flex;flex-direction:row;align-items:center;flex-wrap: wrap;row-gap: 5px;">
+                                    <span style="color:#34e834;width:100%;text-align:center;font-size: 1.2em;">RECOMMENDED - Import from Google Sheets</span>
+                                    <span>Make a copy of <a target="_blank" href="https://docs.google.com/spreadsheets/d/1_tPc6v8ekbY6w8Dz4WK-PnXaTVO1WQie3nXaTJjcntw">this Google Sheet</a> and follow the instructions.</span>
+                                    <input id="RecipientImport_URL" name="RecipientImport_URL" type="text" placeholder="Paste Google Sheets URL here..." style="min-width:0px;flex-basis:80%;flex-grow: 1;" 
+                                        onchange="ImportSheet(event.target.value)"/>
+                                    <a style="height:22.5px;margin-left:5px;" 
+                                        onclick="ImportSheet(document.getElementById('RecipientImport_URL').value)"><img src="../resources/icons/refresh.png" width="22.5px" height="22.5px"/></a>
+                                </div>
+                            </div>
+                            <div id="CurrentRecipient"></div>
+                            <div style="display: flex;flex-direction: row;align-items: center;">
+                                <a id="RecipientButton_NewAward" style="height:22.5px;"><img src="../resources/icons/add.png" width="22.5px" height="22.5px"/></a>
+                                <h2 style="margin-block-end: 0em; margin-block-start: 0em; justify-self: stretch; filter: unset;flex-grow:1;">Award List</h2>
+                                <a onclick="Print_AwardList()" id="RecipientButton_PrintAll" ><div style="height:22.5px;display:flex;align-items:center;column-gap:0.25em"><span>Print All Awards</span><img src="../resources/icons/print.png" width="22.5px" height="22.5px"/></div></a>
+                            </div>
+                            <div id="RecipientList"></div>
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal">
+            <style>
+                @import url('style/modal.css');
+            </style>
+            <div id="templates_modal" style="display:none;">
+                <div class="statusText text">
+                    <p class="label"></p>
+                </div>
+                <div class="statusError" style="display:flex;justify-content:space-between;">
+                    <p class="label text" style="color:#ff4444"><b>Error: </b><span name="msg"></span></p>
+                </div>
+                <div class="progressBar" style="display:grid;">
+                    <div class="border"></div>
+                    <div style="position:relative;margin:5px;grid-row:1;grid-column:1;width: calc(100% - 10px);display:grid;">
+                        <div class="fill"></div>
+                    </div>
+                    <div class="text">
+                        <p class="label"></p>
+                        <p class="numerical"></p>
+                    </div>
+                </div>
+            </div>
+            <div id="MODAL_STATUS" class="status" style="position:relative;">
+                <div style="position:absolute;left:10px;top:10px;margin-block-start:0;display: flex;align-items: center;">
+                    <label for="Setting-Animations"><small>Animations</small></label>
+                    <input id="Setting-Animations" type="checkbox" checked
+                        oninput='Config.UIUpdateEvent(event)' />
+                </div>
+                <div style="margin-bottom: 1em;"><span class="arcanyst">Arcanyst</span></div>
+            </div>
+        </div>
+    </body>
+</html>

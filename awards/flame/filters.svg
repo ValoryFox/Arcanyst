@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" >
+    <filter id="FLAME_Background" width="2625" height="3375" x="0" y="0" filterUnits="userSpaceOnUse" >
+        <feImage href="awards/flame/bg.jpg"/>
+        <feBlend in2="SourceGraphic" mode="multiply"/>
+        <feComposite in2="SourceGraphic" operator="in"></feComposite>
+    </filter>
+    <filter id="FLAME_TextFX">
+        <feFlood result="flood" flood-color="black" flood-opacity="0.1"/>
+        <feImage result="tex" href="awards/flame/text-filter.jpg"/>
+        <feBlend in2="flood" mode="multiply"/>
+        <feBlend in2="SourceGraphic" mode="hard-light"/>
+        <feComposite in2="SourceGraphic" operator="in" />
+    </filter>
+</svg>

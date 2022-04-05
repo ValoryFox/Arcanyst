@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" >
+        
+    <filter id="parchment" width="2625" height="3375" x="0" y="0" filterUnits="userSpaceOnUse" >
+        <feImage href="resources/textures/parchment.jpg" width="2625" height="3375" />
+        <feBlend in2="SourceGraphic" mode="multiply"/>
+        <feComposite in2="SourceGraphic" operator="in"></feComposite>
+    </filter>
+    <filter id="GARBER_linen" width="2625" height="3375" x="0" y="0" filterUnits="userSpaceOnUse" >
+        <feImage href="awards/garber/linen.jpg"/>
+        <feBlend in2="SourceGraphic" mode="multiply"/>
+        <feComposite in2="SourceGraphic" operator="in"></feComposite>
+    </filter>
+    <filter id="OWL_blueprint" width="2625" height="3375" x="0" y="0" filterUnits="userSpaceOnUse" >
+        <feImage href="awards/owl/blueprint.jpg"/>
+        <feBlend in2="SourceGraphic" mode="multiply"/>
+        <feComposite in2="SourceGraphic" operator="in"></feComposite>
+    </filter>
+
+    <filter id="metallic">
+        <feGaussianBlur result="blur" stdDeviation="12"/>
+        <feColorMatrix  result="glow"
+                        type="matrix"
+                        values="1.4 0 0 1.4 -1.3 
+                                0 1.4 0 1.4 -1.3 
+                                0 0 1.4 1.4 -1.3 
+                                0 0 0 0 1" >
+        </feColorMatrix>
+        <feComposite in2="SourceGraphic" operator="atop" result="fx"></feComposite>
+    </filter>
+      <filter id="scatter" filterUnits="userSpaceOnUse">
+        <feTurbulence type="turbulence" baseFrequency="0.1"
+            numOctaves="3" result="turbulence"/>
+        <feDisplacementMap in2="turbulence" in="SourceGraphic"
+            scale="10" xChannelSelector="R" yChannelSelector="G" result="scattered"/>
+    </filter>
+    <filter id="ink-distortion" >
+        <feTurbulence type="turbulence" baseFrequency="0.15"
+            numOctaves="1" result="turbulence" />
+        <feDisplacementMap in2="turbulence" in="SourceGraphic"
+        scale="6" xChannelSelector="R" yChannelSelector="G"/>
+        <feOffset dx="-3" dy="-3"/>
+        <feGaussianBlur stdDeviation="3" result="ink-distort-1" />
+        <feGaussianBlur stdDeviation="4" result="ink-distort-2" />
+        <feBlend in2="ink-distort-1" />
+        <feColorMatrix 
+                        type="matrix"
+                        values="0 0 0 0 0.02
+                                0 0 0 0 0
+                                0 0 0 0 0.01
+                                0 0 0 7 -4.2" >
+        </feColorMatrix>
+        <feColorMatrix result="ink-distortion-combined"
+                        type="matrix"
+                        values="0 0 0 0 0.02
+                                0 0 0 0 0
+                                0 0 0 0 0.01
+                                0 0 0 0.5 0" >
+        </feColorMatrix>
+        <feBlend in2="SourceGraphic" mode="multiply"/>
+    </filter>
+    <rect width="2625" height="3375"  x="0" y="0" fill="White" style="filter:url(#parchment)"></rect>
+</svg>

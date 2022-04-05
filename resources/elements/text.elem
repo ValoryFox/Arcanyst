@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg viewBox="0 0 2550 3300" width="2550" height="3300" version="1.1" xmlns="http://www.w3.org/2000/svg" >
+
+    <foreignObject width="2550" height="3300" x="0" y="0" style="pointer-events:none;">
+        <div class="Award" xmlns="http://www.w3.org/1999/xhtml">
+            <style> 
+
+                    .Award>* { 
+                        pointer-events: auto; /* Make it easier to inspect for debugging by not capturing mouse events on the whole container. */
+                        flex-grow:1;
+                    }
+                    .Award {
+                        font-size: 75pt;
+                        font-family: "BlackChancery";
+                        text-align: center;
+                        color: #000000;
+                        
+                        display:flex;
+                        align-items:center;
+                        padding: 20% 17% 13% 17%;
+                        justify-content:center;
+
+                        position:absolute;
+                        left:0;right:0;top:0;bottom:0;
+                        
+                        overflow: visible;
+                        flex-direction:column;
+                    }
+
+                    .Award p {
+                        margin-block-start: 0em;
+                        margin-block-end: 0em;
+                    }
+
+                    .Award .Body
+                    {
+                        /* Define our "Body" text style */
+                        margin-block-end: 0.5em;
+                        font-size: 0.8em;
+                        font-family: 'Averia Serif Libre';
+                        font-style: italic;
+                    }
+
+                    .Award .Body.Flavour
+                    {
+                        margin-block-end:0em;
+                    }
+
+                    /* FIELDS */
+                    .ZodiacElem { display: none; }
+
+                    
+                    :root { 
+                        font-size: var(--award-font-size);
+                        opacity: var(--award-opacity);
+                        -webkit-print-color-adjust: exact;
+                        print-color-adjust: exact;
+                    }
+
+
+                    /* Decorations
+                        ----------- */
+                    .Underline {
+                        height:13px;
+                        width:100%;
+                        margin-top:7px;
+                        margin-bottom:-20px;
+                    }
+                    .Award .Flourish
+                    {
+                        /* These are the extra images around text (e.g. the squigglies around the issuing text) */
+                        position: absolute;
+                        pointer-events: none;
+                    }
+                    #TopTextFlourish {
+                        width:4em;
+                        left:0.1em;
+                        top:-0.9em;
+                        height: calc(4em * 153 / 557);
+                    }
+                    #BottomTextFlourish {
+                        width:3em;
+                        left:-0.05em;
+                        bottom:-0.95em;
+                        height: calc(3em * 151 / 377);
+                    }
+                    #RightTextFlourish {
+                        width:3.5em;
+                        right:-1.4em;
+                        bottom:-1.15em;
+                        height: calc(3.5em * 363 / 423);
+                    }
+
+                    /* Actual Text Content
+                        ------------ */
+                    .IssuingText {   
+                        /* E.g. "Amtgard and the Grand Duchy of Rising Sun Station" */
+                        font-size: 1.3em;
+                        /* Em Size Changes */
+                        left: -0.3em;
+                        position:relative;
+                    }
+
+                    .IssuingText>p:nth-child(1)
+                    {
+                        text-align: left;
+                        position:relative;
+                        margin-right: 0.2em;
+                        margin-left: -0.5em;
+                        margin-block-end: -0.25em;
+                        line-height: 1.1em;
+                    }
+
+                    .IssuingText>p:nth-child(2)
+                    {
+                        text-align: right;
+                        position:relative;
+                        margin-left: 3em;
+                        margin-top:-0.1em
+                    }
+
+
+                    #AwardText_Amtgard {
+                        font-size: 1.25em;
+                    }
+
+                    .IssuingText .IssuerTitle
+                    {
+                        /* E.g. "the Grand Duchy of" */
+                        font-size: 0.8em;    
+                    }
+
+                    .IssuingVerb {
+                        text-align: center;
+                        margin-block-start: 0.25em;
+                    }
+                    .AwardeeName {
+                        font-size: 1.8em;
+                        /* Em Size Changes */
+                        min-width: 6em;
+                        min-height:0.8em;
+                        margin-top: 0.3em;
+                        margin-bottom: 0.1em;
+                        padding:0.25em 0.05em 0em 0.05em;
+                    }
+
+                    .Award .Body.AwardDetails {
+                        margin-block-start: 0.7em;
+                        font-weight: 700;
+                    }
+
+                    .Body.Award_Reason{
+                        min-height:2em;
+                        justify-self:stretch;
+                        
+                    }
+
+                    .Award .Body.Award_Reason {
+                        --underline-offset: 0em;
+
+                        margin-block-start: 0em;
+                        font-size: 0.8em;
+                        font-style: normal;
+                        line-height: 2em;
+
+                        position:relative;
+                        padding:0.1em;
+                        align-self: stretch;
+
+                        overflow: hidden; /* For culling excess underlines */ 
+                    }
+
+                    .Award .Order 
+                    {
+                        font-size: 1.5em;
+                        margin-block-start: 0.2em;
+                    }
+
+                    .IssuingTextContainer {
+                        min-width: 60%;
+                        margin-left:-10%;
+                        margin-right:-10%;
+                        margin-bottom:5%;
+                    }
+
+                    section.SignAndDate
+                    {
+                        display:flex;
+                        justify-content:space-between;
+                        align-items: end;
+                        font-size:0.85em;
+                        width:115%;
+                        flex-grow:3;
+                    }
+                    section.SignAndDate>div
+                    {
+                        width:7em;
+                    }
+                    section.SignAndDate>div>p.Body
+                    {
+                        margin-block-end:0em;
+                        margin-block-start:0.75em;
+                    }
+                </style>
+                <div class="IssuingTextContainer">
+                        <!-- "Amtgard and <ISSUER NAME> presents" text -->
+                        <div class="IssuingText">
+                            <p>
+                                <img id="TopTextFlourish" src="resources/flourishes/squiggly-top.png" class="Flourish"/>
+                                <img id="BottomTextFlourish" src="resources/flourishes/squiggly-bottom.png" class="Flourish" />
+                                <span name="AwardText_Amtgard" style="font-size:1.25em;">A</span><span name="AwardText_Amtgard" style="margin-right:-10px;">mtgard</span>
+                                <span class="IssuerTitle">and </span>
+                                <span name="AwardText_IssuerTitle" class="IssuerTitle"></span>
+                                <span name="AwardText_IssuerTitle_Of" class="IssuerTitle"></span>
+                            </p>
+                            <p>
+                                <span name="AwardText_Issuer"></span>
+                                <img id="RightTextFlourish" src="resources/flourishes/squiggly-right.png" class="Flourish"/>
+                            </p>
+                        </div>
+                        <p class="IssuingVerb Body">
+                            <!-- The "Verb" i.e. 'presents', 'are proud to present', 'grants' -->
+                            <span name="AwardText_IssuingVerb">presents</span>
+                        </p>
+                    </div>
+
+                    <div >
+                        <p class="AwardeeName UnderlinedBlank KeepUnderline" style="line-height:0.4em">
+                            <span name="AwardText_Name" class="FormFill" style="margin-top:0.3em;bottom:0;position:relative;">
+                                <img class="Underline" src="resources/elements/writing-line.png" />
+                            </span>
+                        </p>
+                        <div class="Body AwardDetails">
+                            <span name="AwardText_With" style="display:inline;">with </span><span name="AwardText_Pronoun"></span> <span name="AwardText_Rank"><img class="Underline Keep" style="width:4em;" src="resources/elements/writing-line.png" /></span>
+                        </div>
+                    </div>
+
+                    <p class="Order"><span name="AwardText_Order"></span></p>
+                    <div class="Body AwardDetails ZodiacElem">
+                        <span name="AwardText_With" style="display:inline;">for the month of </span><span name="AwardText_Month"></span>
+                    </div>
+                    <div class="Body Award_Reason Multiline" style="font-size:0.75em;margin-left:1em;margin-right:1em;margin-bottom:0em;flex-grow:0;">
+                        <div style="padding-top:0.42em;position:absolute;left:0;right:0;top:0;bottom:0;">
+                            <img class="Underline Cull" src="resources/elements/writing-line.png" /> 
+                            <img class="Underline Cull" src="resources/elements/writing-line.png" /> 
+                            <img class="Underline Cull" src="resources/elements/writing-line.png" /> 
+                            <img class="Underline Cull" src="resources/elements/writing-line.png" /> 
+                        </div>
+                        <p style="display:inline-block;"><span name="AwardText_Reason" ><br/><br/></span></p>
+                    </div>
+                    <p class="Body Flavour Multiline" style="margin-block-start:1.5em;margin-left:-0.3em;margin-right:-0.3em;font-size:0.65em;"><span name="AwardText_Flavour">You go above and beyond in making sure all feel welcome and appreciated.</span></p>
+                    <section class="SignAndDate">
+                        <div class="AwardDate UnderlinedBlank">
+                            <p style="min-height:1.2em;font-style:normal;font-size:0.7em;" class="Body"><span name="AwardText_Date"></span></p>
+                            <p style="font-size:0em">
+                                <img class="Underline" src="resources/elements/writing-line.png" />    
+                            </p>
+                            <p class="Body" style="display:inline-block;margin-block-start:0.4em;"><b><span>On this day...</span></b></p>
+
+                        </div>
+                        <div class="AwardSignatory UnderlinedBlank">
+                            <p style="min-height:1.2em;font-style:normal;font-size:0.7em;" class="Body"><span name="AwardText_GivenBy"></span></p>
+                            <p style="font-size:0em">
+                                <img class="Underline" src="resources/elements/writing-line.png" />    
+                            </p>
+                            <p class="Body" style="display:inline-block;margin-block-start:0.4em;"><b><span >By my hand...</span></b></p>
+
+                        </div>
+                    </section>
+            </div>
+    </foreignObject>
+
+</svg>

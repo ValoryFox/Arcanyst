@@ -1,0 +1,72 @@
+:root {
+    --primary-color: hsl(224, 55%, 26%);
+    --secondary-color: hsl(212, 100%, 93%);
+}
+
+#AwardText_Order::after { 
+    content: "Order of the Owl"; }
+
+.AwardBorder {
+    display: none;
+}                    
+
+.RankElement {
+    display: none;
+}
+.rank10 .RankElement.Rank-10 {
+    display: unset;
+}
+.rank9  .RankElement.Rank-9  {
+    display: unset; 
+} 
+.rank8  .RankElement.Rank-8  {
+    display: unset; 
+} 
+.rank7  .RankElement.Rank-7  {
+    display: unset; 
+} 
+.rank6  .RankElement.Rank-6  {
+    display: unset; 
+} 
+.rank5  .RankElement.Rank-5  {
+    display: unset; 
+} 
+.rank4  .RankElement.Rank-4  {
+    display: unset; 
+} 
+.rank3  .RankElement.Rank-3  {
+    display: unset; 
+} 
+.rank2  .RankElement.Rank-2  {
+    display: unset; 
+} 
+.rank1  .RankElement.Rank-1  {
+    display: unset;
+}
+
+#Heraldry_Default .Textured { 
+    filter: url("filters.svg#OWL_edge-detect") grayscale(100%) !important;
+    background-color: white;
+
+    left: 0; right: 0; top: 0; bottom:0;
+    width: calc(2 * var(--bleed) + var(--award-width));
+    height: calc(2 * var(--bleed) + var(--award-height));
+    padding: 0px;
+}
+#Heraldry_Default .DisplayHeraldry {
+    top:2%;
+    --heraldry-size-x: 12%;
+    --heraldry-size-y: 12%;
+    background-position: center;
+}
+
+#Heraldry_Default  {
+    mix-blend-mode: screen;
+    opacity: 0.7;
+}
+
+#AwardText_Default .Award {
+    filter: invert();
+    opacity: 0.8;
+
+}

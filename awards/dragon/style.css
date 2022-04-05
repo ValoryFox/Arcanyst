@@ -1,0 +1,28 @@
+:root {
+    --primary-color: hsl(114, 57%, 37%);
+    --secondary-color: hsl(41, 93%, 55%);
+}
+
+#AwardText_Order::after { 
+    content: "Order of the Dragon"; }
+
+.AwardBorder.Primary {
+    --display-primary: inherit;
+    --display-secondary: none;
+}                    
+.AwardBorder.Secondary {
+    --display-primary: none;
+    --display-secondary: inherit;
+}
+.AwardRankUnder
+{
+    background-image: var(--IMAGE_Award_Rank_Under);
+}
+.AwardRankNumber
+{
+    background-image: var(--IMAGE_Award_Rank_Number);
+}
+.AwardRankOver
+{
+    background-image: var(--IMAGE_Award_Rank_Over);
+}

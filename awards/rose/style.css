@@ -1,0 +1,8 @@
+
+
+#AwardText_Order::after { 
+    content: "Order of the Rose"; }
+
+.TextualContent.Signature {
+    margin: 0.75em !important;
+}
