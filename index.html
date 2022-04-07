@@ -13,7 +13,6 @@
         <script src="lib/external/jsork.js"></script>
 
         <script src="lib/site/ork.js"></script>
-        <script src="lib/site/config.js"></script>
         <script src="lib/site/heraldry.js"></script>
         <script src="lib/site/status.js"></script>
         <script src="lib/site/recipients.js"></script>
@@ -23,11 +22,12 @@
         <script src="lib/io/pdfkit.js"></script>
         <script src="lib/io/zip-full.js"></script>
 
+        <script src="lib/framework/ValidatedListenedEntity.js"></script>
+        <script src="lib/framework/config.js"></script>
         <script src="lib/framework/attributes.js"></script>
         <script src="lib/framework/award.js"></script>
         <script src="lib/framework/shared.js"></script>
         <script src="lib/framework/render.js"></script>
-        <script src="lib/framework/html_manip.js"></script>
 
         <script src="lib/jank.js"></script>
         <script src="awards/ash.js"></script>
@@ -54,30 +54,30 @@
                 font-display: swap;
             }
         </style>
-        <style id="STYLE_Global" ></style>
 
 
         <script>
-            
+            var Config;
 
-            function init()
+            async function init()
             {
+                Status.Modal = true;
+                await Ork.LoadKingdoms();
                 OpenSetupModal();
 
                 console.info(navigator.userAgent);
-                STYLE_Global = document.getElementById("STYLE_Global").sheet;
-                Config.Initialize();
+                Config = await _config.fromCookie();
                 Recipients.Initialize();
                 Award.Preview = new Award({ order: "battle", rank: 0, variant: "arcane" });
                 _CreateAwardNav();
 
-                Award.onPreviewUpdate.push(PreviewAwardUpdate);
+                Award.onPreviewChanges.push(PreviewUpdated);
                 Award.draw.html(Award.Preview, document.getElementById("AwardPreviewSVG"));
                 
                 sidebarTab = document.getElementById('SidebarTab_Recipient');
                 sidebarTabButton = document.getElementById('SidebarTab_Recipient_Button');
 
-                PrintContainer = document.getElementById("PrintContainer");
+                body = document.getElementsByTagName('body')[0];
 
                 Version.Load();
 
@@ -85,7 +85,6 @@
 
             function OpenSetupModal()
             {
-                Status.Modal = true;
                 Status.Elem_Status.appendChild(document.getElementById('SidebarTab_Setup'));
                 document.getElementById('SidebarTab_Setup').classList.toggle('hide', false);
             }
@@ -96,20 +95,17 @@
                 document.getElementById('SidebarTab_Setup').classList.toggle('hide', true);
             }
 
-            var PrintContainer;
+            var body;
 
             var sidebarTab;
             var sidebarTabButton;
 
-            function PreviewAwardUpdate(award, changes)
+            function PreviewUpdated(award, changes)
             {
-                if (!Array.isArray(changes))
-                    changes = [changes];
-
-                for (const change of changes)
-                {
-                    const { property, from, to } = change;
-     
+                let previewElem = document.getElementById("AwardPreviewSVG");
+                let redraw = false;
+                for (const {property, from, to} of changes)
+                {     
                     // Show relevant navigation buttons as active/inactive.
                     UI_NavButtons[property]?.[from]?.classList.toggle('active', false);
                     UI_NavButtons[property]?.[to]?.classList.toggle('active', true);
@@ -128,12 +124,31 @@
                              UI_NavButtons.Containers.rank.children[rank].classList.toggle('hide', 
                                 Award.Orders[award.order].ranks.to < rank
                                 || Award.Orders[award.order].ranks.from > rank);
-                        }    
+                        }
+                        redraw = true;    
+                    }
+                    else if (property == 'rank')
+                        redraw = true;
+                    else if (property == 'variant')
+                        redraw = true;
+                    else if (property == 'Config.Heraldry')
+                        redraw = true;
+                }
+                if (redraw)
+                {
+                    Award.draw.html(Award.Preview, previewElem);
+                }
+                else 
+                {
+                    let fields = award.fields;
+                    for (const elem of previewElem.querySelectorAll('[name^="AwardText_"]'))
+                    {
+                        let _f = fields[elem.getAttribute('name')];
+                        if (_f != undefined && elem.innerHTML != _f)
+                            elem.innerHTML = _f;
                     }
                 }
 
-
-                Award.draw.html(Award.Preview, document.getElementById("AwardPreviewSVG"));
             }
 
             
@@ -272,7 +287,7 @@
 
             async function Print_AwardList()
             {
-                PrintContainer.removeAllChildNodes();
+                body.removeAllChildNodes('svg.print');
                 Status.Modal = true;
                 let progress_draw = new Progress("Creating Awards", Recipients.List.length);
                 for (let i = 0; i < Recipients.List.length; i++)
@@ -283,14 +298,15 @@
                 progress_draw.End();
                 Status.Modal = false;
                 window.print();
+                body.removeAllChildNodes('svg.print');
             }
 
             async function Print_SingleAward(award)
             {
-                PrintContainer.removeAllChildNodes();
+                body.removeAllChildNodes('svg.print');
                 await _AddPrintAward(award);
                 window.print();
-                PrintContainer.removeAllChildNodes();
+                body.removeAllChildNodes('svg.print');
             }
 
             async function Print_PreviewAward()
@@ -304,7 +320,7 @@
                 awd.setAttribute('viewBox', "0 0 2550 3300");
                 awd.classList.add("print");
                 await Award.draw.html(award, awd);
-                PrintContainer.appendChild(awd);
+                body.insertBefore(awd, body.firstChild);
             }
 
             function Save_ImportedAwards()
@@ -583,11 +599,10 @@
                         <div id="SidebarTab_Setup" class="hide">
                             <div style="display:flex;">
                                 <select style="width:40%;flex-grow:1;padding: 10px;" id="Setting-Kingdom" placeholder="Kingdom" disabled="true"
-                                    selectedIndex="0" onchange="Config.UIUpdateEvent(event)">
+                                    selectedIndex="0">
                                     <option value="Custom">Kingdom</option>
                                 </select>
-                                <select style="width:30%;flex-grow:1;padding: 10px;" id="Setting-Park" disabled="true" 
-                                    onchange="Config.UIUpdateEvent(event)">
+                                <select style="width:30%;flex-grow:1;padding: 10px;" id="Setting-Park" disabled="true" >
                                 </select>
                             </div>
                             <div class="settings-section" style="display:flex;">
@@ -602,35 +617,28 @@
                                     <div style="text-align: right;margin-bottom:10px;">
                                         
                                         <label for="Setting-ShowDeadParks"><small>Show Dead Parks</small></label>
-                                        <input id="Setting-ShowDeadParks"  type="checkbox" unchecked
-                                            oninput='Config.UIUpdateEvent(event)' />
+                                        <input id="Setting-ShowDeadParks"  type="checkbox" unchecked />
                                     </div>
                                     
                                     <div style="display:flex;">
                                         <div style="width:30px">
                                             <label for="Setting-UseThe"><small>the</small></label>
-                                            <input id="Setting-UseThe" type="checkbox" checked
-                                                oninput='Config.UIUpdateEvent(event)' />
+                                            <input id="Setting-UseThe" type="checkbox" checked/>
                                         </div>
-                                        <input id="Setting-IssuerTitle" style="flex-grow: 1; width: 50%;" type="text" placeholder="Park/Kingdom Title"
-                                            oninput='Config.UIUpdateEvent(event)'  />
+                                        <input id="Setting-IssuerTitle" style="flex-grow: 1; width: 50%;" type="text" placeholder="Park/Kingdom Title" />
                                     </div>
                                     <div style="display:flex;">
                                         <div style="width:30px">
                                             <label for="Setting-UseOf"><small>of</small></label>
-                                            <input id="Setting-UseOf" type="checkbox" checked
-                                                oninput='Config.UIUpdateEvent(event)' />
+                                            <input id="Setting-UseOf" type="checkbox" checked/>
                                         </div>
-                                        <input id="Setting-IssuerName" style="flex-grow: 1; width: 50%;" type="text" placeholder="Park/Kingdom Name"
-                                            oninput='Config.UIUpdateEvent(event)'  />
+                                        <input id="Setting-IssuerName" style="flex-grow: 1; width: 50%;" type="text" placeholder="Park/Kingdom Name" />
                                     </div>
                                     <div style="margin-top:1em;display: flex;align-items: center;flex-wrap: wrap;">
                                         <label for="Setting-GivenBy" style="width:90px; text-align:right;margin-right: 5px">Given By</label>
-                                        <input id="Setting-GivenBy" type="text" placeholder="Leave blank to hand-sign" style="width: 50%;flex-grow:1;"
-                                            onfocusout='Config.UIUpdateEvent(event)'  />
+                                        <input id="Setting-GivenBy" type="text" placeholder="Leave blank to hand-sign" style="width: 50%;flex-grow:1;" />
                                         <label for="Setting-Date" style="width:90px; text-align:right;margin-right: 5px;">Award Date</label>
-                                        <input id="Setting-Date" type="text" placeholder="13th May 2022" style="width: 50%;flex-grow:1;"
-                                            onfocusout='Config.UIUpdateEvent(event)'  />
+                                        <input id="Setting-Date" type="text" placeholder="13th May 2022" style="width: 50%;flex-grow:1;" />
                                     </div>
                                     <div style="margin-top:1.5em;align-self: flex-start;justify-self: flex-end;">
                                         <label class="heraldry-upload styledButton" style="grid-row:2;grid-column:1;">
@@ -750,7 +758,7 @@
                 </div>
                 <div class="progressBar" style="display:grid;">
                     <div class="border"></div>
-                    <div style="position:relative;margin:5px;grid-row:1;grid-column:1;width: calc(100% - 10px);display:grid;">
+                    <div style="position:relative;margin:5px;grid-row:1;grid-column:1;width:calc( 100% - 10px );display:grid;">
                         <div class="fill"></div>
                     </div>
                     <div class="text">
@@ -762,8 +770,7 @@
             <div id="MODAL_STATUS" class="status" style="position:relative;">
                 <div style="position:absolute;left:10px;top:10px;margin-block-start:0;display: flex;align-items: center;">
                     <label for="Setting-Animations"><small>Animations</small></label>
-                    <input id="Setting-Animations" type="checkbox" checked
-                        oninput='Config.UIUpdateEvent(event)' />
+                    <input id="Setting-Animations" type="checkbox" checked/>
                 </div>
                 <div style="margin-bottom: 1em;"><span class="arcanyst">Arcanyst</span></div>
             </div>

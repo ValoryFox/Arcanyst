@@ -1,10 +1,17 @@
 const Version = {
-    Version: '1.1.2',
+    Version: '1.2.0',
     Subtitle: `Ash's Amtgard Award Sorcery<br/><small>By Valory Fox</small>`,
     PatchNotes: {
+        'Version 1.2.0' : [
+            "Here there be typescript.",
+            "<a href='https://www.youtube.com/watch?v=Uo3cL4nrGOk' target='_blank'>Rewrote the codebase again.</a>",
+            "Preloads all parks to cut down on glitchiness."
+        ],
         'Version 1.1.2' : [
             "Cleaned up a lot of unused assets/code.",
-            "Now loads patch notes, about, issues instead of having them in-line. Pretty meta, right?"
+            "Now loads patch notes, about, issues instead of having them in-line. Pretty meta, right?",
+            "Fixed issue with pages not having proper breaks in-between.",
+            "Adjusted spacing & dynamic size for text."
         ],
         'Version 1.1.1' : [
             "Fixed multi-line recipient names, added text scaling to issuer name and player names.",

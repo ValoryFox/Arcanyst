@@ -140,9 +140,8 @@
                         /* Em Size Changes */
                         min-width: 6em;
                         min-height:0.8em;
-                        margin-top: 0.3em;
                         margin-bottom: 0.1em;
-                        padding:0.25em 0.05em 0em 0.05em;
+                        padding:0em 0.05em 0em 0.05em;
                     }
 
                     .Award .Body.AwardDetails {
@@ -190,7 +189,8 @@
                         align-items: end;
                         font-size:0.85em;
                         width:115%;
-                        flex-grow:3;
+                        flex-basis:350px;
+                        flex-grow:0;
                     }
                     section.SignAndDate>div
                     {
@@ -214,7 +214,7 @@
                                 <span name="AwardText_IssuerTitle_Of" class="IssuerTitle"></span>
                             </p>
                             <p>
-                                <span name="AwardText_Issuer"></span>
+                                <span name="AwardText_Issuer" ></span>
                                 <img id="RightTextFlourish" src="resources/flourishes/squiggly-right.png" class="Flourish"/>
                             </p>
                         </div>
@@ -224,9 +224,9 @@
                         </p>
                     </div>
 
-                    <div >
+                    <div style="flex-grow:0.4;">
                         <p class="AwardeeName UnderlinedBlank KeepUnderline">
-                            <span name="AwardText_Name" class="FormFill" style="margin-top:0.3em;bottom:0;position:relative;">
+                            <span name="AwardText_Name" class="FormFill" style="margin-top:0.3em;bottom:0;position:relative;" >
                                 <img class="Underline" src="resources/elements/writing-line.png" />
                             </span>
                         </p>
@@ -235,11 +235,11 @@
                         </div>
                     </div>
 
-                    <p class="Order"><span name="AwardText_Order"></span></p>
+                    <p class="Order" style="flex-grow:0;"><span name="AwardText_Order"></span></p>
                     <div class="Body AwardDetails ZodiacElem">
                         <span name="AwardText_With" style="display:inline;">for the month of </span><span name="AwardText_Month"></span>
                     </div>
-                    <div class="Body Award_Reason Multiline" style="font-size:0.65em;margin-left:0.5em;margin-right:0.5em;margin-bottom:0em;flex-grow:0;">
+                    <div class="Body Award_Reason Multiline" style="font-size:0.65em;margin-left:0.5em;margin-right:0.5em;margin-bottom:0.5em;flex-grow:0;">
                         <div style="padding-top:0.42em;position:absolute;left:0;right:0;top:0;bottom:0;">
                             <img class="Underline Cull" src="resources/elements/writing-line.png" /> 
                             <img class="Underline Cull" src="resources/elements/writing-line.png" /> 
@@ -248,7 +248,11 @@
                         </div>
                         <p style="display:inline-block;"><span name="AwardText_Reason" ><br/><br/></span></p>
                     </div>
-                    <p class="Body Flavour Multiline" style="margin-block-start:1.5em;margin-left:-0.3em;margin-right:-0.3em;font-size:0.65em;"><span name="AwardText_Flavour">You go above and beyond in making sure all feel welcome and appreciated.</span></p>
+                    <div style="flex-grow:0.5;"></div>
+                    <p class="Body Flavour Multiline" style="margin-block-start:1.5em;margin-left:-0.3em;margin-right:-0.3em;font-size:0.65em;">
+                        <span name="AwardText_Flavour">You go above and beyond in making sure all feel welcome and appreciated.</span>
+                    </p>
+                    <div style="flex-grow:0.7;"></div>
                     <section class="SignAndDate">
                         <div class="AwardDate UnderlinedBlank">
                             <p style="min-height:1.2em;font-style:normal;font-size:0.7em;" class="Body"><span name="AwardText_Date"></span></p>
